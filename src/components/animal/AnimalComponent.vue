@@ -1,3 +1,4 @@
+<!-- eslint-disable no-undef -->
 <template>
   <div class="table-responsive m-5 w-auto ">
     <div class="mb-3 ">
@@ -110,6 +111,7 @@ export default {
         this.animalName = '',
         this.animalGender = '',
         this.animalZooName = ''
+    
       // eslint-disable-next-line no-undef
       $('#animalModal').modal('show');
     },

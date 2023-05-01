@@ -9,7 +9,7 @@
                 alt="Card image cap">
             <div class="card-body text-center mt-1">
                 <p class="card-text">Total Zoo :{{ zoocount }}</p>
-                <button @click="showZooComponent" type="button" class="nav-link btn btn-primary w-100">View Zoo</button>
+                <button @click="showComponent('zoo')" type="button" class="nav-link btn btn-primary w-100">View Zoo</button>
             </div>
         </div>
         <div class="card my-3 mx-2" style="width: 25rem; height: 28rem;">
@@ -18,7 +18,7 @@
                 alt="Card image cap">
             <div class="card-body text-center mt-1">
                 <p class="card-text">Total Animal : {{ animalcount }} </p>
-                <button @click="showAnimalComponent" type="button" class="nav-link btn btn-primary w-100">View
+                <button @click="showComponent('animal')" type="button" class="nav-link btn btn-primary w-100">View
                     Animal</button>
             </div>
         </div>
@@ -28,7 +28,8 @@
                 alt="Card image cap">
             <div class="card-body text-center mt-1">
                 <p class="card-text">Total User : {{ usercount }}</p>
-                <button @click="showUserComponent" type="button" class="nav-link btn btn-primary w-100">View User</button>
+                <button @click="showComponent('user')" type="button" class="nav-link btn btn-primary w-100">View
+                    User</button>
             </div>
         </div>
     </div>
@@ -86,20 +87,10 @@ export default {
 
     },
     methods: {
-        showZooComponent() {
-            this.showZooComponentFlag = true;
-            this.showAnimalComponentFlag = false;
-            this.showUserComponentFlag = false;
-        },
-        showAnimalComponent() {
-            this.showZooComponentFlag = false;
-            this.showAnimalComponentFlag = true;
-            this.showUserComponentFlag = false;
-        },
-        showUserComponent() {
-            this.showZooComponentFlag = false;
-            this.showAnimalComponentFlag = false;
-            this.showUserComponentFlag = true;
+        showComponent(componentName) {
+            this.showZooComponentFlag = componentName === 'zoo';
+            this.showAnimalComponentFlag = componentName === 'animal';
+            this.showUserComponentFlag = componentName === 'user';
         },
         showUserEmail() {
             // dispatch the action function here(ie component) 
