@@ -60,8 +60,18 @@
             </div>
 
             <div class="form-group">
-              <label for="animalzooname">Aniamal Zoo Name </label>
-              <input type="text" class="form-control" id="animalzooname" v-model="animalZooName">
+              <label for="animalzooname">Animal Zoo Name </label>
+
+              <!--Show the Below Input field when the isEditMode is true-->
+              <input type="text" class="form-control" id="animalzooname" v-model="animalZooName" v-if="isEditMode">
+
+              <!--Show the Below Select field when the isEditMode is false-->
+              <select id="animalzooname" class="form-control" v-model="animalZooName" v-if="!isEditMode">
+                <option value="">-- Please select Animal Zoo Name --</option>
+                <option v-for="(items, zooId) in zooData" :key="zooId">
+                  {{ items.zooName }},{{ items.zooLocation }}
+                </option>
+              </select>
             </div>
             <div class="form-group">
               <label for="option">Select Gender:</label>
@@ -86,6 +96,7 @@
 <script>
 
 import axios from 'axios';
+import eventBus from '@/EventBus/Event-Bus';
 
 export default {
   data() {
@@ -96,22 +107,37 @@ export default {
       animalZooName: '',
       isEditMode: false,
       temp: null,
+      zooData: [],
     }
   },
-  created() {
-    //Method to Fetch the Data From tha Database
-    axios.get('http://localhost:8080/rest/webapi/animal/getanimaldata').then(res => {
-      this.animalData = res.data;
-    });
+  mounted() {
+    this.getanimalData();
+    this.getZooData();
   },
-
   methods: {
+    getanimalData() {
+      //Method to Fetch the Data From tha Database
+      axios.get('http://localhost:8080/rest/webapi/animal/getanimaldata').then(res => {
+        this.animalData = res.data;
+        this.sendData();
+      });
+    },
+    getZooData() {
+      //Method to Fetch the Zoo Data From the Database
+      axios.get('http://localhost:8080/rest/webapi/zoo/getzoodata').then(response => {
+        this.zooData = response.data;
+        // console.log(this.zooData);
+      })
+    },
+    sendData(){
+      eventBus.emit('send-animaldata', this.animalData)
+    },
     showAddAnimalModal() {
       this.isEditMode = false,
         this.animalName = '',
         this.animalGender = '',
         this.animalZooName = ''
-    
+
       // eslint-disable-next-line no-undef
       $('#animalModal').modal('show');
     },
@@ -125,7 +151,8 @@ export default {
         // eslint-disable-next-line no-undef
         $('#animalModal').modal('show');
     },
-    saveAnimal() {
+    // Make a function to add and update the animal Data
+    async saveAnimal() {
       const data = {
         animalName: this.animalName,
         animalZooName: this.animalZooName,
@@ -140,31 +167,29 @@ export default {
           axios.put('http://localhost:8080/rest/webapi/animal/animalupdate', this.temp).then(res => {
             // Success message or any other action you want to perform
             console.log(res)
-          }).then(function (response) {
-            //handle success
-            console.log(response);
             alert("Animal Updated Successfully!!!!!!!")
           })
             .catch(error => {
               console.log(error);
               alert("Something went wrong. Please try again later.")
             });
+
       } else {
         // validate the form data
         if (!this.animalName || !this.animalZooName || !this.animalGender) {
           alert('Please fill in all required fields.');
           return;
         }
-        axios.post('http://localhost:8080/rest/webapi/animal/addanimaldata', data).then(res => {
+        await axios.post('http://localhost:8080/rest/webapi/animal/addanimaldata', data).then(res => {
           console.log(res)
-        }).then(function (response) {
-          console.log(response);
           alert("New Animal Added Successfully!!!!!!!")
         })
           .catch(error => {
             console.log(error);
             alert("Something went wrong. Please try again later.")
           });
+
+        this.getanimalData();
       }
       // Clear the input fields and hide the modal
       this.animalName = '';
@@ -173,21 +198,21 @@ export default {
       // eslint-disable-next-line no-undef
       $('#animalModal').modal('hide');
     },
+
+    // make a function to delete the Animal Data 
     deleteData(id) {
-      console.log(id);
+      console.log("Deleted Animal id: ", id);
 
       if (confirm(`Do you really want to delete the Animal with ID ${id} ?????`)) {
         axios.delete(`http://localhost:8080/rest/webapi/animal/${id}`)
           .then(response => {
             console.log(response);
             this.animalData = this.animalData.filter(animaldata => animaldata.animalId !== id)
+            this.getanimalData();
           })
           .catch(function (error) {
             console.log(error.response);
           });
-      } else {
-        // User clicked "Cancel" button
-        // Do nothing or show a message here
       }
     }
   },

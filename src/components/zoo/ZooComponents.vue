@@ -74,6 +74,7 @@
 <script>
 
 import axios from 'axios';
+import eventBus from '@/EventBus/Event-Bus'
 
 export default {
   data() {
@@ -85,15 +86,22 @@ export default {
       temp: null,
     }
   },
-  created() {
-    //Make a function to fetch the data from the database
-    axios.get('http://localhost:8080/rest/webapi/zoo/getzoodata').then(response => {
-      this.zooData = response.data;
-
-    })
+  mounted() {
+    this.getzooData();
   },
 
   methods: {
+    getzooData() {
+      //Make a function to fetch the data from the database
+      axios.get('http://localhost:8080/rest/webapi/zoo/getzoodata').then(response => {
+        this.zooData = response.data;
+        this.sendData();
+      })
+    },
+
+    sendData() {
+      eventBus.emit('my-message', this.zooData);
+    },
     showAddZooModal() {
       this.isEditMode = false;
       this.zooName = '';
@@ -110,7 +118,7 @@ export default {
       // eslint-disable-next-line no-undef
       $('#zooModal').modal('show');
     },
-    saveZoo() {
+    async saveZoo() {
       const data = {
         zooName: this.zooName,
         zooLocation: this.zooLocation,
@@ -123,8 +131,6 @@ export default {
         axios.put('http://localhost:8080/rest/webapi/zoo/zooupdate', this.temp).then(res => {
           // Success message or any other action you want to perform
           console.log(res)
-        }).then(function (response) {
-          console.log(response);
           alert("Zoo Updated Successfully!!!!!!!")
         })
           .catch(error => {
@@ -138,22 +144,23 @@ export default {
           alert('Please fill in all required fields.');
           return;
         }
-        axios.post('http://localhost:8080/rest/webapi/zoo/addzoodata', data).then(res => {
+        await axios.post('http://localhost:8080/rest/webapi/zoo/addzoodata', data).then(res => {
           console.log(res)
-        }).then(function (response) {
-          console.log(response);
           alert("New Zoo Added Successfully!!!!!!!")
         })
           .catch(error => {
             console.log(error);
             alert("Something went wrong. Please try again later.")
           });
+        // Below line is to used to show immediately show added data into the current page
+        this.getzooData();
       }
       // Clear the input fields and also hide the modal
       this.zooName = '';
       this.zooLocation = '';
       // eslint-disable-next-line no-undef
       $('#zooModal').modal('hide');
+
     },
     //Make a function to delete the data from the database
     deleteData(id) {
@@ -164,15 +171,13 @@ export default {
           .then(response => {
             console.log(response);
             this.zooData = this.zooData.filter(zoodata => zoodata.zooId !== id)
-
+            this.getzooData();
           })
           .catch(function (error) {
             console.log(error.response);
           });
-      } else {
-        // User clicked "Cancel" button
-        // Do nothing or show a message here
       }
+     
     }
   },
 

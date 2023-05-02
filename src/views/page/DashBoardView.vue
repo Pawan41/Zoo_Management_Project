@@ -8,7 +8,7 @@
                 src="https://static.vecteezy.com/system/resources/previews/000/362/602/original/cute-animals-in-the-zoo-vector.jpg"
                 alt="Card image cap">
             <div class="card-body text-center mt-1">
-                <p class="card-text">Total Zoo :{{ zoocount }}</p>
+                <p class="card-text">{{ len }}</p>
                 <button @click="showComponent('zoo')" type="button" class="nav-link btn btn-primary w-100">View Zoo</button>
             </div>
         </div>
@@ -17,7 +17,7 @@
                 src="https://images.pexels.com/photos/247502/pexels-photo-247502.jpeg?cs=srgb&dl=pexels-pixabay-247502.jpg&fm=jpg"
                 alt="Card image cap">
             <div class="card-body text-center mt-1">
-                <p class="card-text">Total Animal : {{ animalcount }} </p>
+                <p class="card-text">{{ animallen }} </p>
                 <button @click="showComponent('animal')" type="button" class="nav-link btn btn-primary w-100">View
                     Animal</button>
             </div>
@@ -27,7 +27,7 @@
                 src="https://www.pngitem.com/pimgs/m/50-505130_young-man-using-laptop-laptop-with-person-animated.png"
                 alt="Card image cap">
             <div class="card-body text-center mt-1">
-                <p class="card-text">Total User : {{ usercount }}</p>
+                <p class="card-text">{{ userlen }}</p>
                 <button @click="showComponent('user')" type="button" class="nav-link btn btn-primary w-100">View
                     User</button>
             </div>
@@ -37,6 +37,7 @@
     <!--Show Zoo Components-->
     <div v-if="showZooComponentFlag">
         <ZooComponent />
+
     </div>
 
     <!--Show Animal Components-->
@@ -58,7 +59,7 @@
 import ZooComponent from "../../components/zoo/ZooComponents.vue"
 import AnimalComponent from "../../components/animal/AnimalComponent.vue"
 import UserComponent from "../../components/user/UserComponent.vue"
-import axios from 'axios';
+import eventBus from '@/EventBus/Event-Bus'
 
 export default {
     data() {
@@ -66,24 +67,28 @@ export default {
             showZooComponentFlag: false,
             showAnimalComponentFlag: false,
             showUserComponentFlag: false,
-            zoocount: '',
             usercount: '',
-            animalcount: '',
+            len: null,
+            zooData: [],
+            animalData: [],
+            animallen: null,
+            userData: [],
+            userlen: null
         }
     },
-    mounted() {
-        axios.get('http://localhost:8080/rest/webapi/zoo/zoocount').then(response => {
-            this.zoocount = response.data;
-
-        }),
-            axios.get('http://localhost:8080/rest/webapi/user/usercount').then(response => {
-                this.usercount = response.data;
-
-            }),
-            axios.get('http://localhost:8080/rest/webapi/animal/animalcount').then(response => {
-                this.animalcount = response.data;
-
-            })
+    created() {
+        eventBus.on('my-message', (data) => {
+            this.zooData = data;
+            this.len ="Total Zoo : "+ this.zooData.length;
+        });
+        eventBus.on('send-animaldata', (data) => {
+            this.animalData = data;
+            this.animallen ="Total Animal : "+ this.animalData.length;
+        });
+        eventBus.on('userdata-send', (data) => {
+            this.userData = data;
+            this.userlen ="Total Users : "+ this.userData.length;
+        });
 
     },
     methods: {

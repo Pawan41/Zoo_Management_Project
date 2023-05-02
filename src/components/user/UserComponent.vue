@@ -102,6 +102,7 @@
 
 import axios from 'axios';
 import bcrypt from 'bcryptjs';
+import eventBus from '@/EventBus/Event-Bus'
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -127,8 +128,11 @@ export default {
     getUserData() {
       axios.get('http://localhost:8080/rest/webapi/user/getuserdata').then(res => {
         this.userData = res.data
-
+        this.sendData();
       })
+    },
+    sendData() {
+      eventBus.emit('userdata-send', this.userData)
     },
     showAddUserModal() {
       this.isEditMode = false,
@@ -153,7 +157,7 @@ export default {
       // eslint-disable-next-line no-undef
       $('#userModal').modal('show');
     },
-    saveUser() {
+    async saveUser() {
       // Hash the password using bcrypt
       const salt = bcrypt.genSaltSync(10);
       const hashedPassword = bcrypt.hashSync(this.password, salt);
@@ -177,9 +181,6 @@ export default {
           axios.put('http://localhost:8080/rest/webapi/user/userupdate', this.temp).then(res => {
             // Success message or any other action you want to perform
             console.log(res)
-          }).then(function (response) {
-            //handle success
-            console.log(response);
             alert("User Updated Successfully!!!!!!!")
           })
             .catch(error => {
@@ -192,17 +193,15 @@ export default {
           alert('Please fill in all required fields.');
           return;
         }
-        axios.post('http://localhost:8080/rest/webapi/user/adduserdata', data).then(res => {
+        await axios.post('http://localhost:8080/rest/webapi/user/adduserdata', data).then(res => {
           console.log(res)
-        }).then(function (response) {
-          //handle success
-          console.log(response);
           alert("New User Added Successfully!!!!!!!")
         })
           .catch(error => {
             console.log(error);
             alert("Something went wrong. Please try again later.")
           });
+        this.getUserData();
       }
       // Clear the input fields and hide the modal
       this.userName = '',
@@ -212,6 +211,7 @@ export default {
         this.role = ''
       // eslint-disable-next-line no-undef
       $('#userModal').modal('hide');
+
     },
     deleteData(id) {
       console.log(id)
@@ -221,13 +221,11 @@ export default {
           .then(response => {
             console.log(response);
             this.userData = this.userData.filter(items => items.userId !== id);
+            this.getUserData();
           })
           .catch(function (error) {
             console.log(error.response);
           });
-      } else {
-        // User clicked "Cancel" button
-        // Do nothing or show a message here
       }
     }
   },
